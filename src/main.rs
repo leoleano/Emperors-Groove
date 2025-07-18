@@ -14,7 +14,7 @@ type Error = Box<dyn std::error::Error + Send + Sync>;
 type Context<'a> = poise::Context<'a, Data, Error>;
 
 pub struct Data {
-    votes: Mutex<HashMap<String, u32>>,
+    search: String,
 }
 
 use serenity::async_trait;
@@ -22,23 +22,6 @@ use serenity::model::channel::Message;
 use serenity::prelude::*;
 
 struct Handler;
-
-async fn on_error(error: poise::FrameworkError<'_, Data, Error>){
-    // This is our custom error handler
-    // They are many errors that can occur, so we only handle the ones we want to customize
-    // and forward the rest to the default handler
-    match error {
-        poise::FrameworkError::Setup {error, .. } => panic!("Failed to start bot: {:?}", error),
-        poise::FrameworkError::Command {error, ctx, .. } => {
-            println!("Error in command `{}`: {:?}", ctx.command().name, error,);
-        }
-        error => {
-            if let Err(e) = poise::builtins::on_error(error).await {
-                println!("Error while handling error: {}", e)
-            }
-        }
-    }
-}
 
 #[async_trait]
 impl EventHandler for Handler {
@@ -64,31 +47,12 @@ impl EventHandler for Handler {
 
 #[tokio::main]
 async fn main() {
-    // // Login with a bot token from the environment
-    // let token = env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
-    // // Set gateway intents, which decides what events the bot will be notified about
-    // let intents = GatewayIntents::GUILD_MESSAGES
-    //     | GatewayIntents::DIRECT_MESSAGES
-    //     | GatewayIntents::MESSAGE_CONTENT;
-
-    // // Create a new instance of the Client, logging in as a bot.
-    // let mut client = Client::builder(&token, intents)
-    //     .event_handler(Handler)
-    //     .await
-    //     .expect("Err creating client");
-
-    // println!("starting up");
-    // // Start listening for events by starting a single shard
-    // if let Err(why) = client.start().await {
-    //     println!("Client error: {why:?}");
-    // }
-
     tracing_subscriber::fmt::init();
 
     // FrameworkOptions contains all of poise's configuration option in one struct
     // Every option can be omitted to use its default value
     let options = poise::FrameworkOptions {
-        commands: vec![commands::help(), commands::vote(), commands::getvotes(), commands::play()],
+        commands: vec![commands::help(), commands::play()],
         prefix_options: poise::PrefixFrameworkOptions {
             prefix: Some("~".into()),
             edit_tracker: Some(Arc::new(poise::EditTracker::for_timespan(
@@ -101,7 +65,7 @@ async fn main() {
             ..Default::default()
         },
         // The global error handler for all error cases that may occur
-        on_error: |error| Box::pin(on_error(error)),
+        // on_error: |error| Box::pin(on_error(error)),
         // This code is run before every command
         pre_command: |ctx| {
             Box::pin(async move {
@@ -144,7 +108,7 @@ async fn main() {
                 println!("Logged in as {}", _ready.user.name);
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
                 Ok(Data {
-                    votes: Mutex::new(HashMap::new()),
+                    search: String::new()
                 })
             })
         })
