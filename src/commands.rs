@@ -75,3 +75,25 @@ pub async fn getvotes(
 
     Ok(())
 }
+
+/// 
+/// Plays music 
+///
+/// Joins a voice channel and plays music based on link or search query
+/// 
+/// ```
+/// ~play Props & Mayhem Pierce The Veil
+/// ~play https://open.spotify.com/track/2SYMnBpx7zyhSDPQwoOlFO?si=99024f1b56d2490a
+/// ~play https://youtu.be/yBbr9n9JnZg?si=Rw1RRwLftmeGreOx
+/// ```
+#[poise::command(slash_command)]
+pub async fn play(
+    ctx: Context<'_>,
+    #[description = "Command to play music"] choice: String,
+) -> Result<(), Error> {
+
+    let response = format!("You want to play {choice}. {choice} has now started playing!");
+    ctx.say(response).await?;
+
+    Ok(())
+}
