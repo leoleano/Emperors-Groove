@@ -1,5 +1,11 @@
 use std::env;
 
+use songbird::SerenityInit;
+use songbird::events::{Event, EventContext, EventHandler as VoiceEventHandler, TrackEvent};
+use songbird::input::YoutubeDl;
+use reqwest::Client as HttpClient;
+// use serenity::client::Context;
+
 mod commands;
 use poise::{framework, serenity_prelude as serenity, EditTracker};
 use std::{
